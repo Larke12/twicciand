@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Twicciand authenticication</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	</head>
+	<body>
+		<h1>Twicciand Authenticated!</h1>
+		<script type="text/javascript" charset="utf-8">
+			var fragments = document.location.hash.split("&");
+			var token = fragments[0].split("=")[1];
+			var scopes = fragments[1].split("=")[1];
+			document.write("Token: " + token + "\n");
+			document.write("Scopes: " + scopes + "\n");
+
+			$.post("http://localhost:1921/recv_auth",
+			    {
+				token: token,
+				scopes: scopes
+			    }
+			);
+			window.close();
+		</script>
+	</body>
+</html>
