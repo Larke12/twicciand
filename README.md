@@ -3,6 +3,13 @@
 `twicciand` is the background process for Twiccian. It's job is to authenticate
 with Twitch and handle all communication with the Twitch API and chat.
 
+## Building
+
+To build the application, first make sure (`GOPATH` is
+set)[https://golang.org/doc/code.html]. Next, issue the command `go get
+"gopkg.in/gcfg.v1"` to install config file library. Finally, run `go build` in
+the project directory to build the project.
+
 ## Authentication
 
 Currently, `twicciand` can only authenticate with Twitch on behalf of the user.
