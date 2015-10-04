@@ -38,7 +38,7 @@ func main() {
 		com := make(chan string, 0)
 
 		// Catch Twitch's authentication redirect which contains the token and list of scopes
-		http.Handle("/", http.FileServer(http.Dir("auth")))
+		http.Handle("/", http.FileServer(http.Dir("auth_server")))
 		// Recieve a post containing the token and list of scopes from our original capture page
 		http.HandleFunc("/recv_auth", handle_twitch_auth(com))
 		go http.ListenAndServe(":1921", nil)
