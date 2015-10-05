@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"gopkg.in/gcfg.v1"
 )
@@ -15,17 +14,6 @@ type Config struct {
 	}
 }
 
-type TwitchAuth struct {
-	Token  string
-	Scopes string
-}
-
-// Handle our captive portal's post containing the token and allowed scopes
-func handle_twitch_auth(com chan string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		com <- r.PostFormValue("token")
-	}
-}
 
 func main() {
 	cfg := new(Config)
@@ -34,21 +22,22 @@ func main() {
 		log.Fatalf("Failed to parse config data: %s", err)
 	}
 
+	auth := new(TwitchAuth)
+
+	// Knowing the username is not necessary, but if it is provided, store it
+	if cfg.Twitch.Username != "" {
+		auth.setUsername(cfg.Twitch.Username)
+	}
+
+	// Create new authentication storage
 	if cfg.Twitch.Token == "" {
-		com := make(chan string, 0)
-
-		// Catch Twitch's authentication redirect which contains the token and list of scopes
-		http.Handle("/", http.FileServer(http.Dir("auth_server")))
-		// Recieve a post containing the token and list of scopes from our original capture page
-		http.HandleFunc("/recv_auth", handle_twitch_auth(com))
-		go http.ListenAndServe(":1921", nil)
-		fmt.Println("Waiting for authentication token...")
-		fmt.Println("Please visit", "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=mya9g4l7ucpsbwe2sjlj749d4hqzvvj&redirect_uri=http://localhost:1921&scope=user_read+user_follows_edit+user_subscriptions+chat_login", "to generate an authentication token")
-
-		// Receive auth token from the channel
-		cfg.Twitch.Token = <-com
+		// Wait until we receive the credentials
+		auth.startAuthServer()
+	} else {
+		// We have the pasword in the config file
+		auth.setPassword(cfg.Twitch.Token)
 	}
 
 	// Print user's authentication token
-	fmt.Println("Your token is:", cfg.Twitch.Token)
+	fmt.Println("Your token is:", auth.Password)
 }
