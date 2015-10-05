@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"net/http"
 	"strconv"
 )
 
@@ -29,6 +30,12 @@ func (api *TwitchApi) getChannelVideos(channel string, limit int, offset int) st
 	url.WriteString(strconv.Itoa(limit))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
+
+	client := new(http.Client)
+	req, _ := http.NewRequest("GET", url.String(), nil)
+	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
+
+	response, _ := client.Do(req)
 
 	return ""
 }
