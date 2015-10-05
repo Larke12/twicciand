@@ -11,6 +11,8 @@ type Auth interface {
 	setUsername(user string)
 	setPassword(pass string)
 	setCredentials(user string, pass string)
+	getUsername() string
+	getPassword() string
 }
 
 // Create a type for Twitch authentication
@@ -40,6 +42,15 @@ func (auth *TwitchAuth) setPassword(pass string) {
 func (auth *TwitchAuth) setCredentials(user string, pass string) {
 	auth.Username = user
 	auth.Password = pass
+}
+
+// Retrieve credentials from the authentication object
+func (auth *TwitchAuth) getUsername() string {
+	return auth.Username
+}
+
+func (auth *TwitchAuth) getPassword() string {
+	return auth.Password
 }
 
 // Below are the functions to create a webserver to recieve credentials from Twitch
