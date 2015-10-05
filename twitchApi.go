@@ -1,11 +1,24 @@
 package main
 
+import (
+	"bytes"
+)
+
 type TwitchApi struct {
 	auth *TwitchAuth
 }
 
+type ChannelTemplate struct {
+	Channel string
+}
+
 func (api *TwitchApi) getChannel(channel string) string {
 	// TODO: implement
+	var url bytes.Buffer
+
+	url.WriteString("https://api.twitch.tv/kraken/channels/")
+	url.WriteString(channel)
+
 	return ""
 }
 
