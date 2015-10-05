@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"gopkg.in/gcfg.v1"
 )
@@ -14,12 +15,28 @@ type Config struct {
 	}
 }
 
+func writeConfig(auth Auth) {
+		file, err := os.OpenFile("twicciand.conf", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			log.Printf("Could not open config file to add auth token")
+		}
+
+		defer file.Close()
+
+		file.WriteString("[twitch]\nusername=")
+		file.WriteString(auth.getUsername())
+		file.WriteString("\ntoken=")
+		file.WriteString(auth.getPassword())
+		file.WriteString("\n")
+
+		file.Sync()
+}
 
 func main() {
 	cfg := new(Config)
 	err := gcfg.ReadFileInto(cfg, "twicciand.conf")
 	if err != nil {
-		log.Fatalf("Failed to parse config data: %s", err)
+		log.Printf("Failed to parse config data: %s", err)
 	}
 
 	auth := new(TwitchAuth)
@@ -33,6 +50,7 @@ func main() {
 	if cfg.Twitch.Token == "" {
 		// Wait until we receive the credentials
 		auth.startAuthServer()
+		writeConfig(auth)
 	} else {
 		// We have the pasword in the config file
 		auth.setPassword(cfg.Twitch.Token)
