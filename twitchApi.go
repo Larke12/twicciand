@@ -2,28 +2,62 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 	"strconv"
 )
 
-type TwitchApi struct {
+type twitchApi struct {
 	auth *TwitchAuth
 }
 
-func (api *TwitchApi) getChannel(channel string) string {
-	// TODO: implement
+// Create a constructor so a new API object cannot be created without an auth key
+func NewTwitchApi(auth *TwitchAuth) *twitchApi {
+	api := new(twitchApi)
+	api.auth = auth
+
+	return api
+}
+
+// Take a URL and make a GET request to twitch's REST api
+func getJsonRequest(url bytes.Buffer, api *twitchApi) bytes.Buffer {
+	// Create a HTTP request
+	req, _ := http.NewRequest("GET", url.String(), nil)
+	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
+	req.Header.Set("Client-ID", api.auth.Password)
+
+	// Run that request
+	client := new(http.Client)
+	response, err := client.Do(req)
+	if err != nil {
+		log.Print("Error making GET request to url:", url.String())
+	}
+
+	// Capture output in a bytes.Buffer
+	var json bytes.Buffer
+	_, err = json.ReadFrom(response.Body)
+
+	// Check if we read it correctly
+	if err != nil {
+		log.Print("Error receiving response from url:", url.String())
+	}
+
+	return json
+}
+
+func (api *twitchApi) getChannel(channel string) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/channels/")
 	url.WriteString(channel)
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getChannelVideos(channel string, limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) getChannelVideos(channel string, limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
+	// Compose the url for the request
 	url.WriteString("https://api.twitch.tv/kraken/channels/")
 	url.WriteString(channel)
 	url.WriteString("/videos?limit=")
@@ -31,17 +65,10 @@ func (api *TwitchApi) getChannelVideos(channel string, limit int, offset int) st
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	client := new(http.Client)
-	req, _ := http.NewRequest("GET", url.String(), nil)
-	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
-
-	response, _ := client.Do(req)
-
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getChannelFollows(channel string, limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) getChannelFollows(channel string, limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/channels/")
@@ -51,42 +78,38 @@ func (api *TwitchApi) getChannelFollows(channel string, limit int, offset int) s
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getChannelTeams(channel string) string {
-	// TODO: implement
+func (api *twitchApi) getChannelTeams(channel string) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/channels/")
 	url.WriteString(channel)
 	url.WriteString("/teams")
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getChannelBadges(channel string) string {
-	// TODO: implement
+func (api *twitchApi) getChannelBadges(channel string) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/chat/")
 	url.WriteString(channel)
 	url.WriteString("/badges")
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getEmotes() string {
-	// TODO: implement
+func (api *twitchApi) getEmotes() bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/chat/emoticons")
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getUserFollows(user string, limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) getUserFollows(user string, limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/users/")
@@ -96,11 +119,10 @@ func (api *TwitchApi) getUserFollows(user string, limit int, offset int) string 
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) isUserFollowing(user string, target string) string {
-	// TODO: implement
+func (api *twitchApi) isUserFollowing(user string, target string) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/users/")
@@ -108,11 +130,10 @@ func (api *TwitchApi) isUserFollowing(user string, target string) string {
 	url.WriteString("/follows/channels/")
 	url.WriteString(target)
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getGames(limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) getGames(limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/games/top?limit=")
@@ -120,11 +141,10 @@ func (api *TwitchApi) getGames(limit int, offset int) string {
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) searchChannels(query string, limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) searchChannels(query string, limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/search/channels?q=")
@@ -134,11 +154,10 @@ func (api *TwitchApi) searchChannels(query string, limit int, offset int) string
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) searchStreams(query string, limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) searchStreams(query string, limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/search/streams?q=")
@@ -148,11 +167,10 @@ func (api *TwitchApi) searchStreams(query string, limit int, offset int) string 
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) searchGames(query string, queryType string, live bool) string {
-	// TODO: implement
+func (api *twitchApi) searchGames(query string, queryType string, live bool) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/search/games?q=")
@@ -162,21 +180,19 @@ func (api *TwitchApi) searchGames(query string, queryType string, live bool) str
 	url.WriteString("&offset=")
 	url.WriteString(strconv.FormatBool(live))
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getStream(channel string) string {
-	// TODO: implement
+func (api *twitchApi) getStream(channel string) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/streams/")
 	url.WriteString(channel)
 
-	return ""
+	return getJsonRequest(url, api)
 }
 
-func (api *TwitchApi) getFeaturedStreams(limit int, offset int) string {
-	// TODO: implement
+func (api *twitchApi) getFeaturedStreams(limit int, offset int) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/streams/featured?limit=")
@@ -184,5 +200,5 @@ func (api *TwitchApi) getFeaturedStreams(limit int, offset int) string {
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(offset))
 
-	return ""
+	return getJsonRequest(url, api)
 }

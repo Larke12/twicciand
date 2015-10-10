@@ -16,20 +16,20 @@ type Config struct {
 }
 
 func writeConfig(auth Auth) {
-		file, err := os.OpenFile("twicciand.conf", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-		if err != nil {
-			log.Printf("Could not open config file to add auth token")
-		}
+	file, err := os.OpenFile("twicciand.conf", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		log.Printf("Could not open config file to add auth token")
+	}
 
-		defer file.Close()
+	defer file.Close()
 
-		file.WriteString("[twitch]\nusername=")
-		file.WriteString(auth.getUsername())
-		file.WriteString("\ntoken=")
-		file.WriteString(auth.getPassword())
-		file.WriteString("\n")
+	file.WriteString("[twitch]\nusername=")
+	file.WriteString(auth.getUsername())
+	file.WriteString("\ntoken=")
+	file.WriteString(auth.getPassword())
+	file.WriteString("\n")
 
-		file.Sync()
+	file.Sync()
 }
 
 func main() {
@@ -58,4 +58,8 @@ func main() {
 
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
+
+	api := NewTwitchApi(auth)
+	result := api.getChannelVideos("test_channel", 10, 0)
+	fmt.Println(result.String())
 }
