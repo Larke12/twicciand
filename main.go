@@ -60,6 +60,6 @@ func main() {
 	fmt.Println("Your token is:", auth.Password)
 
 	api := NewTwitchApi(auth)
-	result := api.getChannelVideos("test_channel", 10, 0)
+	result := api.getChannelVideos("gamesdonequick", 5, 0)
 	fmt.Println(result.String())
 }
