@@ -1,15 +1,15 @@
 // This file is part of Twicciand.
-// 
+//
 // Twicciand is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Twicciand is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Twicciand.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -23,11 +23,7 @@ import (
 // Generic Authentication provider interface
 type Auth interface {
 	isAuthenticated() bool
-	setUsername(user string)
-	setPassword(pass string)
 	setCredentials(user string, pass string)
-	getUsername() string
-	getPassword() string
 }
 
 // Create a type for Twitch authentication
@@ -45,27 +41,10 @@ func (auth *TwitchAuth) isAuthenticated() bool {
 	}
 }
 
-// Store credentials into the authentication object
-func (auth *TwitchAuth) setUsername(user string) {
-	auth.Username = user
-}
-
-func (auth *TwitchAuth) setPassword(pass string) {
-	auth.Password = pass
-}
-
+// Store both credentials into the authentication object
 func (auth *TwitchAuth) setCredentials(user string, pass string) {
 	auth.Username = user
 	auth.Password = pass
-}
-
-// Retrieve credentials from the authentication object
-func (auth *TwitchAuth) getUsername() string {
-	return auth.Username
-}
-
-func (auth *TwitchAuth) getPassword() string {
-	return auth.Password
 }
 
 // Below are the functions to create a webserver to recieve credentials from Twitch

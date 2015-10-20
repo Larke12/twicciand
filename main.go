@@ -18,63 +18,47 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
-	"gopkg.in/gcfg.v1"
+	"github.com/walle/cfg"
 )
 
-type Config struct {
-	Twitch struct {
-		Username string
-		Token    string
-	}
-}
-
-func writeConfig(auth Auth) {
-	file, err := os.OpenFile("twicciand.conf", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Printf("Could not open config file to add auth token")
-	}
-
-	defer file.Close()
-
-	file.WriteString("[twitch]\nusername=")
-	file.WriteString(auth.getUsername())
-	file.WriteString("\ntoken=")
-	file.WriteString(auth.getPassword())
-	file.WriteString("\n")
-
-	file.Sync()
-}
-
 func main() {
-	cfg := new(Config)
-	err := gcfg.ReadFileInto(cfg, "twicciand.conf")
+	// Create a config object from the file
+	file, err := cfg.NewConfigFile("twicciand.conf")
 	if err != nil {
-		log.Printf("Failed to parse config data: %s", err)
+		log.Print("Error parsing config file")
 	}
 
+	// Make a new authentication object
 	auth := new(TwitchAuth)
 
 	// Knowing the username is not necessary, but if it is provided, store it
-	if cfg.Twitch.Username != "" {
-		auth.setUsername(cfg.Twitch.Username)
+	username, err := file.Config.GetString("username")
+	if err != nil {
+		log.Print("Could not read username")
+		file.Config.SetString("username", "")
+		file.Persist()
 	}
+	auth.Username = username
 
-	// Create new authentication storage
-	if cfg.Twitch.Token == "" {
+	// read the auth token from the config file, or receive it from twitch
+	token, err := file.Config.GetString("token")
+	if err != nil {
+		log.Print("Could not find auth token - waiting for twitch's reply")
 		// Wait until we receive the credentials
 		auth.startAuthServer()
-		writeConfig(auth)
+		// Update the config file
+		file.Config.SetString("token", auth.Password)
+		file.Persist()
 	} else {
-		// We have the pasword in the config file
-		auth.setPassword(cfg.Twitch.Token)
+		// We have the pasword in the config file, inject it into the auth object
+		auth.Password = token
 	}
 
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
 
 	api := NewTwitchApi(auth)
-	result := api.getChannelBadges([]byte(`"{"query":"gamesdonequick"}`))
+	result := api.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
 	fmt.Println(result.String())
 }
