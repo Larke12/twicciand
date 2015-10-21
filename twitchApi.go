@@ -49,20 +49,20 @@ type ParamsQueryFull struct {
 }
 
 // This is the interface which describes the twitch API
-type twitchApi struct {
+type TwitchApi struct {
 	auth *TwitchAuth
 }
 
 // Create a constructor so a new API object cannot be created without an auth key
-func NewTwitchApi(auth *TwitchAuth) *twitchApi {
-	api := new(twitchApi)
+func NewTwitchApi(auth *TwitchAuth) *TwitchApi {
+	api := new(TwitchApi)
 	api.auth = auth
 
 	return api
 }
 
 // Take a URL and make a GET request to twitch's REST api
-func getApiUrl(url bytes.Buffer, api *twitchApi) bytes.Buffer {
+func getApiUrl(url bytes.Buffer, api *TwitchApi) bytes.Buffer {
 	// Create a HTTP request
 	req, _ := http.NewRequest("GET", url.String(), nil)
 	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
@@ -88,7 +88,7 @@ func getApiUrl(url bytes.Buffer, api *twitchApi) bytes.Buffer {
 }
 
 // Returns a channel object, takes a ParamsQuery
-func (api *twitchApi) getChannel(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getChannel(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQuery)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -103,7 +103,7 @@ func (api *twitchApi) getChannel(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getChannelVideos(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getChannelVideos(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -123,7 +123,7 @@ func (api *twitchApi) getChannelVideos(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getChannelFollows(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getChannelFollows(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -142,7 +142,7 @@ func (api *twitchApi) getChannelFollows(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getChannelTeams(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getChannelTeams(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQuery)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -158,7 +158,7 @@ func (api *twitchApi) getChannelTeams(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getChannelBadges(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getChannelBadges(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQuery)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -174,7 +174,7 @@ func (api *twitchApi) getChannelBadges(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getEmotes(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getEmotes(apiParams []byte) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/chat/emoticons")
@@ -182,7 +182,7 @@ func (api *twitchApi) getEmotes(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getUserFollows(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getUserFollows(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -201,7 +201,7 @@ func (api *twitchApi) getUserFollows(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) isUserFollowing(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) isUserFollowing(apiParams []byte) bytes.Buffer {
 	params := new(ParamsTarget)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -218,7 +218,7 @@ func (api *twitchApi) isUserFollowing(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getGames(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getGames(apiParams []byte) bytes.Buffer {
 	params := new(ParamsPage)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -235,7 +235,7 @@ func (api *twitchApi) getGames(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) searchChannels(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) searchChannels(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -254,7 +254,7 @@ func (api *twitchApi) searchChannels(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) searchStreams(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -273,7 +273,7 @@ func (api *twitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) searchGames(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) searchGames(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryType)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -292,7 +292,7 @@ func (api *twitchApi) searchGames(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getStream(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getStream(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQuery)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {
@@ -307,7 +307,7 @@ func (api *twitchApi) getStream(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
-func (api *twitchApi) getFeaturedStreams(apiParams []byte) bytes.Buffer {
+func (api *TwitchApi) getFeaturedStreams(apiParams []byte) bytes.Buffer {
 	params := new(ParamsPage)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {

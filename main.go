@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/walle/cfg"
 )
@@ -58,7 +59,19 @@ func main() {
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
 
-	api := NewTwitchApi(auth)
-	result := api.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
-	fmt.Println(result.String())
+	twitchApi := NewTwitchApi(auth)
+	// result := twitchApi.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
+	// fmt.Println(result.String())
+
+	// api := NewLocalApi("")
+	// result = api.getStreamUrl([]byte(`{"url":"http://twitch.tv/stabbystabby"}`))
+	// fmt.Println(result.String())
+
+	reader := NewSocketReader(twitchApi)
+	fmt.Println("Starting SocketReader...")
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go reader.StartReader()
+
+	wg.Wait()
 }
