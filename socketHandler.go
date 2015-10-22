@@ -10,9 +10,9 @@ import (
 )
 
 type JsonRpc struct {
-	Api    string `json:"api"`
-	Name   string `json:"name"`
-	Params string `json:"params"`
+	Api    string                 `json:"api"`
+	Name   string                 `json:"name"`
+	Params map[string]interface{} `json:"params"`
 }
 
 type SocketReader struct {
@@ -117,15 +117,18 @@ func (read *SocketReader) DispatchConnection(conn net.Conn, apiParams []byte) {
 	err := json.Unmarshal(apiParams, call)
 	if err != nil {
 		log.Print("Socket reader could not parse command")
+		return
 	}
+
+	// Extract the json from the call parameters, and encode it as a string
+	command, _ := json.Marshal(call.Params)
 
 	// Dispatch function based on api
 	if call.Api == "local" {
-		result := read.LocalFuncmap[call.Name](read.Local, []byte(call.Params))
+		result := read.LocalFuncmap[call.Name](read.Local, command)
 		conn.Write(result.Bytes())
 	} else if call.Api == "twitch" {
-		result := read.TwitchFuncmap[call.Name](read.Twitch, []byte(call.Params))
+		result := read.TwitchFuncmap[call.Name](read.Twitch, command)
 		conn.Write(result.Bytes())
 	}
-
 }
