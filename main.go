@@ -18,14 +18,24 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"sync"
+
 
 	"github.com/walle/cfg"
 )
 
 func main() {
-	// Create a config object from the file
-	file, err := cfg.NewConfigFile("twicciand.conf")
+	// Try finding the config file in the user's .config
+	conffile := path.Join(os.Getenv("HOME"), ".config/twicciand/twicciand.conf")
+
+	// If the config file doesn't exist, load from the same directory as the binary
+	// (useful for testing)
+	if _, err := os.Stat(conffile); err != nil {
+		conffile = "twicciand.conf"
+	}
+	file, err := cfg.NewConfigFile(conffile)
 	if err != nil {
 		log.Print("Error parsing config file")
 	}
