@@ -22,7 +22,6 @@ import (
 	"path"
 	"sync"
 
-
 	"github.com/walle/cfg"
 )
 
@@ -68,6 +67,13 @@ func main() {
 
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
+
+	// Create a chat object
+	chat := new(TwitchChat)
+
+	chat.init()
+	chat.setCredentials(auth.Username, "#rpglimitbreak", auth.Password)
+	go chat.startChatServer()
 
 	twitchApi := NewTwitchApi(auth)
 	// result := twitchApi.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
