@@ -15,6 +15,11 @@ type JsonRpc struct {
 	Params map[string]interface{} `json:"params"`
 }
 
+type JsonRpcResult struct {
+	Name   string      `json:"name"`
+	Result interface{} `json:"result"`
+}
+
 type SocketReader struct {
 	Twitch        *TwitchApi
 	Local         *LocalApi
@@ -54,6 +59,7 @@ func NewSocketReader(api *TwitchApi) *SocketReader {
 	// Load local api functions into a function map, so we can dispatch calls easily
 	read.LocalFuncmap = make(map[string]func(*LocalApi, []byte) bytes.Buffer)
 	read.LocalFuncmap["getStreamUrl"] = (*LocalApi).getStreamUrl
+	read.LocalFuncmap["getStreamDesc"] = (*LocalApi).getStreamDesc
 
 	return read
 }
@@ -126,9 +132,30 @@ func (read *SocketReader) DispatchConnection(conn net.Conn, apiParams []byte) {
 	// Dispatch function based on api
 	if call.Api == "local" {
 		result := read.LocalFuncmap[call.Name](read.Local, command)
-		conn.Write(result.Bytes())
+		var genericResult interface{}
+		json.Unmarshal(result.Bytes(), &genericResult)
+
+		resultJson := new(JsonRpcResult)
+		resultJson.Name = call.Name
+		resultJson.Result = genericResult
+
+		buf, _ := json.Marshal(resultJson)
+
+		conn.Write(buf)
 	} else if call.Api == "twitch" {
+		fmt.Println("We have arrived")
 		result := read.TwitchFuncmap[call.Name](read.Twitch, command)
-		conn.Write(result.Bytes())
+		var genericResult interface{}
+		json.Unmarshal(result.Bytes(), &genericResult)
+		fmt.Println("Stuff:", string(result.Bytes()))
+		fmt.Println("Stuff2:", genericResult)
+
+		resultJson := new(JsonRpcResult)
+		resultJson.Name = call.Name
+		resultJson.Result = genericResult
+
+		buf, _ := json.Marshal(resultJson)
+
+		conn.Write(buf)
 	}
 }
