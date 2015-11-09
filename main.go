@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"sync"
@@ -72,8 +73,13 @@ func main() {
 	chat := new(TwitchChat)
 
 	chat.init()
-	chat.setCredentials(auth.Username, "#rpglimitbreak", auth.Password)
+	chat.setCredentials(auth.Username, "#twitchplayspokemon", auth.Password)
 	go chat.startChatServer()
+
+	http.Handle("/ws", wsHandler{chat: chat})
+	if err := http.ListenAndServe(":1922", nil); err != nil {
+		log.Print("Error starting chat websocket server:", err)
+	}
 
 	twitchApi := NewTwitchApi(auth)
 	// result := twitchApi.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
