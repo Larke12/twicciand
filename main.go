@@ -69,31 +69,25 @@ func main() {
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
 
-	// Create a chat object
-	chat := new(TwitchChat)
-
-	chat.init()
-	chat.setCredentials(auth.Username, "#twitchplayspokemon", auth.Password)
-	go chat.startChatServer()
-
-	http.Handle("/ws", wsHandler{chat: chat})
-	if err := http.ListenAndServe(":1922", nil); err != nil {
-		log.Print("Error starting chat websocket server:", err)
-	}
-
+	// Create a new api object
 	twitchApi := NewTwitchApi(auth)
-	// result := twitchApi.getChannelBadges([]byte(`{"query":"gamesdonequick"}`))
-	// fmt.Println(result.String())
-
-	// api := NewLocalApi("")
-	// result = api.getStreamUrl([]byte(`{"url":"http://twitch.tv/stabbystabby"}`))
-	// fmt.Println(result.String())
-
 	reader := NewSocketReader(twitchApi)
 	fmt.Println("Starting SocketReader...")
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go reader.StartReader()
+
+	// Create a chat object
+	chat := new(TwitchChat)
+	chat.init()
+	chat.setCredentials(auth.Username, "#twitchplayspokemon", auth.Password)
+	go chat.startChatServer()
+
+	// Start chat server
+	http.Handle("/ws", wsHandler{chat: chat})
+	if err := http.ListenAndServe(":1922", nil); err != nil {
+		log.Print("Error starting chat websocket server:", err)
+	}
 
 	wg.Wait()
 }

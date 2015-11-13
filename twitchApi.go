@@ -66,7 +66,8 @@ func getApiUrl(url bytes.Buffer, api *TwitchApi) bytes.Buffer {
 	// Create a HTTP request
 	req, _ := http.NewRequest("GET", url.String(), nil)
 	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
-	req.Header.Set("Client-ID", api.auth.Password)
+	req.Header.Set("Client-ID", "mya9g4l7ucpsbwe2sjlj749d4hqzvvj")
+	req.Header.Set("Authorization", "OAuth " + api.auth.Password)
 
 	// Run that request
 	client := new(http.Client)
@@ -317,6 +318,23 @@ func (api *TwitchApi) getFeaturedStreams(apiParams []byte) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/streams/featured?limit=")
+	url.WriteString(strconv.Itoa(params.Limit))
+	url.WriteString("&offset=")
+	url.WriteString(strconv.Itoa(params.Offset))
+
+	return getApiUrl(url, api)
+}
+
+func (api *TwitchApi) getFollowedStreams(apiParams []byte) bytes.Buffer {
+	params := new(ParamsPage)
+	err := json.Unmarshal(apiParams, params)
+	if err != nil {
+		log.Print("Incorrect parameters passed to twitch call getFollowedStreams")
+	}
+
+	var url bytes.Buffer
+
+	url.WriteString("https://api.twitch.tv/kraken/streams/followed?limit=")
 	url.WriteString(strconv.Itoa(params.Limit))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Offset))
