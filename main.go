@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
 	"sync"
 
@@ -27,6 +28,30 @@ import (
 )
 
 func main() {
+	_, err := os.Stat("/tmp/twicciand-lock")
+	if err == nil {
+		log.Print("Daemon is already running, exiting...")
+		return
+	}
+	lock, err := os.Create("/tmp/twicciand-lock")
+	if err != nil {
+		log.Print("Error craeting lock file")
+	}
+	fmt.Println("Creating file")
+	lock.Close()
+
+	// capture termination signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt)
+	signal.Notify(sigs, os.Kill)
+	go func() {
+		for sig := range sigs {
+			fmt.Println("Removing file", sig)
+			os.Remove("/tmp/twicciand-lock")
+			os.Exit(0)
+		}
+	}()
+
 	// Try finding the config file in the user's .config
 	conffile := path.Join(os.Getenv("HOME"), ".config/twicciand/twicciand.conf")
 
