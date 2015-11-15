@@ -11,6 +11,7 @@ import (
 
 type LocalApi struct {
 	YDLPath string
+	auth    *TwitchAuth
 }
 
 type ParamsUrlConv struct {
@@ -18,9 +19,10 @@ type ParamsUrlConv struct {
 }
 
 // Create a constructor so a new API object cannot be created without an auth key
-func NewLocalApi(ydlPath string) *LocalApi {
+func NewLocalApi(ydlPath string, auth *TwitchAuth) *LocalApi {
 	api := new(LocalApi)
 	api.YDLPath = ydlPath
+	api.auth = auth
 
 	return api
 }
@@ -68,5 +70,16 @@ func (api *LocalApi) getStreamDesc(apiParams []byte) bytes.Buffer {
 	result.WriteString(`"`)
 	result.Write(output)
 	result.WriteString(`"`)
+	return result
+}
+
+// Gets the actual stream URL using youtube-dl
+func (api *LocalApi) isAuthenticated(apiParams []byte) bytes.Buffer {
+	var result bytes.Buffer
+	if api.auth.Password == "" {
+		result.WriteString("false")
+	} else {
+		result.WriteString("true")
+	}
 	return result
 }

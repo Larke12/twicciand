@@ -32,6 +32,7 @@ type SocketReader struct {
 func NewSocketReader(api *TwitchApi) *SocketReader {
 	read := new(SocketReader)
 	read.Twitch = api
+	read.Local = NewLocalApi("", api.auth)
 
 	ln, err := net.Listen("tcp", ":1921")
 	if err != nil {
@@ -61,6 +62,7 @@ func NewSocketReader(api *TwitchApi) *SocketReader {
 	read.LocalFuncmap = make(map[string]func(*LocalApi, []byte) bytes.Buffer)
 	read.LocalFuncmap["getStreamUrl"] = (*LocalApi).getStreamUrl
 	read.LocalFuncmap["getStreamDesc"] = (*LocalApi).getStreamDesc
+	read.LocalFuncmap["isAuthenticated"] = (*LocalApi).isAuthenticated
 
 	return read
 }

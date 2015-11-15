@@ -52,6 +52,18 @@ func main() {
 		}
 	}()
 
+	// Make a new authentication object
+	auth := new(TwitchAuth)
+	// Create new api objects
+	twitchApi := NewTwitchApi(auth)
+
+	// Run the socket reader
+	reader := NewSocketReader(twitchApi)
+	fmt.Println("Starting SocketReader...")
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go reader.StartReader()
+
 	// Try finding the config file in the user's .config
 	conffile := path.Join(os.Getenv("HOME"), ".config/twicciand/twicciand.conf")
 
@@ -65,21 +77,9 @@ func main() {
 		log.Print("Error parsing config file")
 	}
 
-	// Make a new authentication object
-	auth := new(TwitchAuth)
-
-	// Knowing the username is not necessary, but if it is provided, store it
-	username, err := file.Config.GetString("username")
-	if err != nil {
-		log.Print("Could not read username")
-		file.Config.SetString("username", "")
-		file.Persist()
-	}
-	auth.Username = username
-
 	// read the auth token from the config file, or receive it from twitch
 	token, err := file.Config.GetString("token")
-	if err != nil {
+	if err != nil || token == "" {
 		log.Print("Could not find auth token - waiting for twitch's reply")
 		// Wait until we receive the credentials
 		auth.startAuthServer()
@@ -91,16 +91,17 @@ func main() {
 		auth.Password = token
 	}
 
+	// Knowing the username is not necessary, but if it is provided, store it
+	username, err := file.Config.GetString("username")
+	if err != nil {
+		log.Print("Could not read username")
+		file.Config.SetString("username", "")
+		file.Persist()
+	}
+	auth.Username = username
+
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
-
-	// Create a new api object
-	twitchApi := NewTwitchApi(auth)
-	reader := NewSocketReader(twitchApi)
-	fmt.Println("Starting SocketReader...")
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go reader.StartReader()
 
 	// Create a chat object
 	chat := new(TwitchChat)
