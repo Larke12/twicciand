@@ -87,13 +87,13 @@ func (chat *TwitchChat) PingHandler(s ircx.Sender, m *irc.Message) {
 
 func (chat *TwitchChat) PrivMsgHandler(s ircx.Sender, m *irc.Message) {
 	// fmt.Println(m.Prefix.Name + ": " + m.Trailing)
-	for msg := range chat.msgsFromClient {
-		s.Send(&irc.Message{
-			Command:  "PRIVMSG",
-			Params:   []string{*chat.Channel},
-			Trailing: string(msg),
-		})
-	}
+	// for msg := range chat.msgsFromClient {
+	// 	s.Send(&irc.Message{
+	// 		Command:  "PRIVMSG",
+	// 		Params:   []string{*chat.Channel},
+	// 		Trailing: string(msg),
+	// 	})
+	// }
 	chat.msgsToClient <- []byte(m.Prefix.Name + ": " + m.Trailing)
 }
 
