@@ -67,10 +67,12 @@ func main() {
 	// Try finding the config file in the user's .config
 	conffile := path.Join(os.Getenv("HOME"), ".config/twicciand/twicciand.conf")
 
-	// If the config file doesn't exist, load from the same directory as the binary
-	// (useful for testing)
+	// If the config file doesn't exist, create one
+	if _, err := os.Stat(path.Join(os.Getenv("HOME"), ".config/twicciand/")); os.IsNotExist(err) {
+		os.Mkdir(path.Join(os.Getenv("HOME"), ".config/twicciand/"), 0755)
+	}
 	if _, err := os.Stat(conffile); err != nil {
-		conffile = "twicciand.conf"
+		os.Create(conffile)
 	}
 	file, err := cfg.NewConfigFile(conffile)
 	if err != nil {
