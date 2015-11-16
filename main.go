@@ -108,7 +108,7 @@ func main() {
 	// Create a chat object
 	chat := new(TwitchChat)
 	chat.init()
-	chat.setCredentials(auth.Username, "#twitchplayspokemon", auth.Password)
+	chat.setCredentials(auth.Username, "#bobross", auth.Password)
 	go chat.startChatServer()
 
 	// Start chat server
