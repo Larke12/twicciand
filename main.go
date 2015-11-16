@@ -71,7 +71,6 @@ func main() {
 	if _, err := os.Stat(path.Join(os.Getenv("HOME"), ".config/twicciand/")); os.IsNotExist(err) {
 		os.Mkdir(path.Join(os.Getenv("HOME"), ".config/twicciand/"), 0755)
 	}
-	fmt.Println(err)
 	if _, err := os.Stat(conffile); err != nil {
 		os.Create(conffile)
 	}
