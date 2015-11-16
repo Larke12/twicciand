@@ -67,7 +67,7 @@ func getApiUrl(url bytes.Buffer, api *TwitchApi) bytes.Buffer {
 	req, _ := http.NewRequest("GET", url.String(), nil)
 	req.Header.Set("Accept", "application/vnd.twitchtv.v3+json") // Request the v3 api
 	req.Header.Set("Client-ID", "mya9g4l7ucpsbwe2sjlj749d4hqzvvj")
-	req.Header.Set("Authorization", "OAuth " + api.auth.Password)
+	req.Header.Set("Authorization", "OAuth "+api.auth.Password)
 
 	// Run that request
 	client := new(http.Client)
@@ -287,7 +287,7 @@ func (api *TwitchApi) searchGames(apiParams []byte) bytes.Buffer {
 	url.WriteString(params.Query)
 	url.WriteString("&type=")
 	url.WriteString(params.QueryType)
-	url.WriteString("&offset=")
+	url.WriteString("&live=")
 	url.WriteString(strconv.FormatBool(params.Live))
 
 	return getApiUrl(url, api)

@@ -61,24 +61,22 @@ func TestChannel(t *testing.T) {
 	})
 
 	Convey("Test API results for getChannel", t, func() {
-		var expected bytes.Buffer
-
 		Convey("Test twitch's test_channel", func() {
-			expected.WriteString(`{"mature":false,"status":"TESTING  TESTING   TESTING","broadcaster_language":null,"display_name":"Test_channel","game":null,"delay":null,"language":"en","_id":6140842,"name":"test_channel","created_at":"2009-05-08T08:19:58Z","updated_at":"2015-10-22T18:15:37Z","logo":null,"banner":null,"video_banner":null,"background":null,"profile_banner":null,"profile_banner_background_color":null,"partner":false,"url":"http://www.twitch.tv/test_channel","views":161,"followers":11,"_links":{"self":"https://api.twitch.tv/kraken/channels/test_channel","follows":"https://api.twitch.tv/kraken/channels/test_channel/follows","commercial":"https://api.twitch.tv/kraken/channels/test_channel/commercial","stream_key":"https://api.twitch.tv/kraken/channels/test_channel/stream_key","chat":"https://api.twitch.tv/kraken/chat/test_channel","features":"https://api.twitch.tv/kraken/channels/test_channel/features","subscriptions":"https://api.twitch.tv/kraken/channels/test_channel/subscriptions","editors":"https://api.twitch.tv/kraken/channels/test_channel/editors","teams":"https://api.twitch.tv/kraken/channels/test_channel/teams","videos":"https://api.twitch.tv/kraken/channels/test_channel/videos"}}`)
 			result := api.getChannel([]byte(`{"query":"test_channel"}`))
 
-			So(expected.String(), ShouldResemble, result.String())
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["name"].(string)), ShouldBeGreaterThan, 0)
 		})
 	})
 
 	Convey("Test API results for getChannelFollows", t, func() {
-		var expected bytes.Buffer
-
 		Convey("Test twitch's test_channel", func() {
-			expected.WriteString(`{"follows":[{"created_at":"2015-10-10T14:14:25Z","_links":{"self":"https://api.twitch.tv/kraken/users/the_lolness/follows/channels/test_channel"},"notifications":false,"user":{"_id":27667332,"name":"the_lolness","created_at":"2012-01-22T19:01:39Z","updated_at":"2015-07-06T10:57:11Z","_links":{"self":"https://api.twitch.tv/kraken/users/the_lolness"},"display_name":"The_lolness","logo":null,"bio":"Hello! I mostly play Guild Wars 2 on stream but I play other games too.","type":"user"}}],"_total":11,"_links":{"self":"https://api.twitch.tv/kraken/channels/test_channel/follows?direction=DESC&limit=1&offset=0","next":"https://api.twitch.tv/kraken/channels/test_channel/follows?direction=DESC&limit=1&offset=1"}}`)
 			result := api.getChannelFollows([]byte(`{"query":"test_channel","page_params":{"limit":1,"offset":0}}`))
 
-			So(expected.String(), ShouldResemble, result.String())
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["follows"].([]interface{})), ShouldBeGreaterThan, 0)
 		})
 	})
 
@@ -127,6 +125,16 @@ func TestChat(t *testing.T) {
 	api := NewTwitchApi(auth)
 
 	// Start testing
+	Convey("Test API results for getEmotes", t, func() {
+		Convey("Test twitch's emotes endpoint", func() {
+			result := api.getEmotes([]byte(``))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["emoticons"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
 	Convey("Test API results for getChannelBadges", t, func() {
 		var expected bytes.Buffer
 
@@ -194,4 +202,107 @@ func TestUser(t *testing.T) {
 		})
 	})
 
+}
+
+func TestGames(t *testing.T) {
+	file, err := cfg.NewConfigFile("twicciand.conf")
+	if err != nil {
+		log.Printf("Failed to parse config data: %s", err)
+	}
+
+	auth := new(TwitchAuth)
+
+	username, err := file.Config.GetString("username")
+	if err != nil {
+		log.Print("Could not read username")
+		file.Config.SetString("username", "")
+		file.Persist()
+	}
+	auth.Username = username
+
+	token, err := file.Config.GetString("token")
+	if err != nil {
+		log.Print("Could not find auth token - waiting for twitch's reply")
+		// Wait until we receive the credentials
+		auth.startAuthServer()
+		// Update the config file
+		file.Config.SetString("token", auth.Password)
+		file.Persist()
+	} else {
+		// We have the pasword in the config file, inject it into the auth object
+		auth.Password = token
+	}
+
+	api := NewTwitchApi(auth)
+
+	// Start testing
+	Convey("Test API results for getGames", t, func() {
+		Convey("Test for top games on Twitch", func() {
+			result := api.getGames([]byte(`{"page_params":{"limit":1,"offset":0}}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["top"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for searchChannels", t, func() {
+		Convey("Test for starcraft channels", func() {
+			result := api.searchChannels([]byte(`{"query":"starcraft","page_params":{"limit":1,"offset":0}}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["channels"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for searchStreams", t, func() {
+		Convey("Test for starcraft streams", func() {
+			result := api.searchStreams([]byte(`{"query":"starcraft","page_params":{"limit":1,"offset":0}}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["streams"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for searchGames", t, func() {
+		Convey("Test for starcraft games", func() {
+			result := api.searchGames([]byte(`{"query":"star","query_type":"suggest","live":true}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["games"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for getStream", t, func() {
+		Convey("Test for Twitch's test channel", func() {
+			result := api.getStream([]byte(`{"query":"twitchplayspokemon"}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["_links"].(map[string]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for getFeaturedStreams", t, func() {
+		Convey("Test for list of featured streams", func() {
+			result := api.getFeaturedStreams([]byte(`{"page_params":{"limit":1,"offset":0}}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["featured"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
+
+	Convey("Test API results for getFollowedStreams", t, func() {
+		Convey("Test for list of followed streams", func() {
+			result := api.getFollowedStreams([]byte(`{"page_params":{"limit":1,"offset":0}}`))
+
+			var resultjson map[string]interface{}
+			json.Unmarshal(result.Bytes(), &resultjson)
+			So(len(resultjson["streams"].([]interface{})), ShouldBeGreaterThan, 0)
+		})
+	})
 }
