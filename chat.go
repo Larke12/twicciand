@@ -75,7 +75,7 @@ func (channel *IrcChannel) Login(cfg *IrcConfig) error {
 	if cfg.Password != "" {
 		messages = append(messages, &irc.Message{
 			Command: irc.PASS,
-			Params:  []string{cfg.Password},
+			Params:  []string{"oauth:" + cfg.Password},
 		})
 	}
 	messages = append(messages, &irc.Message{
@@ -100,6 +100,10 @@ func (channel *IrcChannel) Login(cfg *IrcConfig) error {
 func (channel *IrcChannel) Send(msg *irc.Message) error {
 	err := channel.Writer.Encode(msg)
 	return err
+}
+
+func (channel *IrcChannel) SendChatMsg(msg string) {
+	channel.PostToChannel <- []byte(msg)
 }
 
 func (channel *IrcChannel) Reconnect() error {
@@ -143,6 +147,7 @@ func (channel *IrcChannel) Sort() {
 		} else if msg.Command == irc.PING {
 			channel.handlePing(msg)
 		} else if msg.Command == irc.PRIVMSG {
+			fmt.Println(msg.Params, ":", msg.Trailing)
 			channel.handlePrivMsg(msg)
 		}
 	}
@@ -181,7 +186,7 @@ type wsHandler struct {
 	chat *TwitchChat
 }
 
-var channel *string
+// var channel *string
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  2048,
 	WriteBufferSize: 2048,
@@ -190,7 +195,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (chat *TwitchChat) AddChannel(user string, channel string, pass string) {
+func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *IrcChannel {
 	config := &IrcConfig{
 		Server:     "irc.twitch.tv:6667",
 		Username:   user,
@@ -200,12 +205,13 @@ func (chat *TwitchChat) AddChannel(user string, channel string, pass string) {
 	ircchannel, err := CreateIrcChannel(channel, config)
 	if err != nil {
 		log.Print("Could not connect to channel: ", channel, ": ", err)
-		return
+		return nil
 	}
 	chat.channels = append(chat.channels, ircchannel)
 	chat.curIn = ircchannel.PostToChannel
 	chat.curOut = ircchannel.ReadFromChannel
 	fmt.Println("Added new chat channel")
+	return ircchannel
 }
 
 // Accept incomming connections
@@ -223,7 +229,7 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Write messages from twitch's server to the websocket
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
-		log.Print("Sending to client:", msg)
+		log.Print("Sending to client:", string(msg))
 		err := conn.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			break
@@ -236,11 +242,12 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
-		log.Print("Received from client:", msg)
+		log.Print("Received from client:", string(msg))
 		if err != nil {
 			break
 		}
 		chat.curIn <- msg
+		chat.curOut <- msg
 	}
 	conn.Close()
 }
