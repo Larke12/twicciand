@@ -107,7 +107,8 @@ func main() {
 
 	// Create a chat object
 	chat := new(TwitchChat)
-	chat.AddChannel(auth.Username, "#octotep", auth.Password)
+	chat.auth = auth;
+	chat.AddChannel(auth.Username, "#twitchplayspokemon", auth.Password)
 
 	// Start chat server
 	http.Handle("/ws", wsHandler{chat: chat})

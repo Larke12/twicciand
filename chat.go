@@ -15,6 +15,7 @@ import (
 
 type TwitchChat struct {
 	channels []*IrcChannel
+	auth     *TwitchAuth
 	curIn    chan []byte
 	curOut   chan []byte
 }
@@ -246,8 +247,9 @@ func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 		if err != nil {
 			break
 		}
+		arr := []byte(chat.auth.Username + ": ")
 		chat.curIn <- msg
-		chat.curOut <- msg
+		chat.curOut <- append(arr[:], msg[:]...)
 	}
 	conn.Close()
 }
