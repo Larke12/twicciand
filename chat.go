@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"bytes"
 
 	"github.com/gorilla/websocket"
 	"github.com/sorcix/irc"
@@ -163,7 +164,7 @@ func (channel *IrcChannel) handleConnect(m *irc.Message) {
 }
 
 func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
-	channel.ReadFromChannel <- []byte(msg.Prefix.Name + ": " + msg.Trailing)
+	channel.ReadFromChannel <- []byte("<strong>" + msg.Prefix.Name + "</strong>: " + msg.Trailing)
 }
 
 func (channel *IrcChannel) handlePing(msg *irc.Message) {
@@ -232,7 +233,8 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
-		err := conn.WriteMessage(websocket.TextMessage, []byte(html.EscapeString(string(msg))))
+		arr := bytes.Split(msg, []byte{':'})
+		err := conn.WriteMessage(websocket.TextMessage, []byte("<span id='username'>" + string(arr[0]) + "</span><span id='text'>: " + html.EscapeString(string(arr[1])) + "</span>"))
 		if err != nil {
 			break
 		}
