@@ -1,6 +1,6 @@
 # twicciand
 
-`twicciand` is the background process for Twiccian. It's job is to authenticate
+`twicciand` is the background process for [Twiccian](https://github.com/octotep/twiccian). It's job is to authenticate
 with Twitch and handle all communication with the Twitch API and chat.
 
 ## Building
