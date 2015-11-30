@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"math"
 	"net"
@@ -231,7 +232,7 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
-		err := conn.WriteMessage(websocket.TextMessage, msg)
+		err := conn.WriteMessage(websocket.TextMessage, []byte(html.EscapeString(string(msg))))
 		if err != nil {
 			break
 		}
@@ -249,7 +250,7 @@ func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 		}
 		arr := []byte(chat.auth.Username + ": ")
 		chat.curIn <- msg
-		chat.curOut <- append(arr[:], msg[:]...)
+		chat.curOut <- []byte(html.EscapeString(string((append(arr[:], msg[:]...)))))
 	}
 	conn.Close()
 }
