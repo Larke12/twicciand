@@ -234,7 +234,7 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
 		arr := bytes.Split(msg, []byte{':'})
-		err := conn.WriteMessage(websocket.TextMessage, []byte("<span id='username'>" + string(arr[0]) + "</span><span id='text'>: " + html.EscapeString(string(arr[1])) + "</span>"))
+		err := conn.WriteMessage(websocket.TextMessage, []byte("<span id='username'>" + string(arr[0]) + "</span><span id='text'>: " + html.EscapeString(string(arr[1])) + " </span>"))
 		if err != nil {
 			break
 		}
