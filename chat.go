@@ -233,7 +233,7 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
-		arr := bytes.Split(msg, []byte{':'})
+		arr := bytes.SplitN(msg, []byte{':'}, 2)
 		err := conn.WriteMessage(websocket.TextMessage, []byte("<span id='username'>" + string(arr[0]) + "</span><span id='text'>: " + html.EscapeString(string(arr[1])) + " </span>"))
 		if err != nil {
 			break
