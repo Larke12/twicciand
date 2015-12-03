@@ -254,7 +254,7 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
-		arr := bytes.Split(msg, []byte{':'})
+		arr := bytes.SplitN(msg, []byte{':'}, 2)
 		color, ok := chat.colorMap[string(arr[0])]
 		if !ok {
 			color = colors[rand.Intn(len(colors))]
@@ -278,7 +278,7 @@ func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 		}
 		arr := []byte(chat.auth.Username + ": ")
 		chat.curIn <- msg
-		chat.curOut <- []byte(html.EscapeString(string((append(arr[:], msg[:]...)))))
+		chat.curOut <- []byte(string((append(arr[:], msg[:]...))))
 	}
 	conn.Close()
 }
