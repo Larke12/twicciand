@@ -2,14 +2,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html"
 	"log"
 	"math"
+	"math/rand"
 	"net"
 	"net/http"
 	"time"
-	"bytes"
 
 	"github.com/gorilla/websocket"
 	"github.com/sorcix/irc"
@@ -20,6 +21,7 @@ type TwitchChat struct {
 	auth     *TwitchAuth
 	curIn    chan []byte
 	curOut   chan []byte
+	colorMap map[string]string
 }
 
 type IrcChannel struct {
@@ -231,10 +233,34 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Write messages from twitch's server to the websocket
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
+	rand.Seed(time.Now().UTC().UnixNano())
+	colors := []string{
+		"#FF0000",
+		"#0000FF",
+		"#008000",
+		"#B22222",
+		"#FF7F50",
+		"#9ACD32",
+		"#FF4500",
+		"#2E8B57",
+		"#DAA520",
+		"#D2691E",
+		"#5F9EA0",
+		"#1E90FF",
+		"#FF69B4",
+		"#8A2BE2",
+		"#00FF7F",
+	}
+
 	for msg := range chat.curOut {
 		log.Print("Sending to client:", string(msg))
 		arr := bytes.Split(msg, []byte{':'})
-		err := conn.WriteMessage(websocket.TextMessage, []byte("<span id='username'>" + string(arr[0]) + "</span><span id='text'>: " + html.EscapeString(string(arr[1])) + " </span>"))
+		color, ok := chat.colorMap[string(arr[0])]
+		if !ok {
+			color = colors[rand.Intn(len(colors))]
+			chat.colorMap[string(arr[0])] = color
+		}
+		err := conn.WriteMessage(websocket.TextMessage, []byte("<span style='color:"+color+"' id='username'>"+string(arr[0])+"</span><span id='text'>: "+html.EscapeString(string(arr[1]))+" </span>"))
 		if err != nil {
 			break
 		}

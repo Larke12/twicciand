@@ -107,7 +107,8 @@ func main() {
 
 	// Create a chat object
 	chat := new(TwitchChat)
-	chat.auth = auth;
+	chat.auth = auth
+	chat.colorMap = make(map[string]string)
 	chat.AddChannel(auth.Username, "#twitchplayspokemon", auth.Password)
 
 	// Start chat server
