@@ -74,7 +74,7 @@ func main() {
 		// Update the config file
 		file.Config.SetString("token", auth.Password)
 	} else {
-		// We have the pasword in the config file, inject it into the auth object
+		// We have the password in the config file, inject it into the auth object
 		auth.Password = token
 	}
 
@@ -84,22 +84,26 @@ func main() {
 		result := twitchApi.getUser([]byte(`{"query":"nil"}`))
 		var resultjson map[string]interface{}
 		json.Unmarshal(result.Bytes(), &resultjson)
-
+		fmt.Println("Your json is:", resultjson["name"].(string))
 		auth.Username = resultjson["name"].(string)
 		fmt.Println("Gotten username:", resultjson["name"].(string))
 
 		file.Config.SetString("username", resultjson["name"].(string))
+	} else {
+		// We have the username in the config file, inject it into the auth object
+		auth.Username = username
 	}
 
 	file.Persist()
 	// Print user's authentication token
+	fmt.Println("Your username is:", username)
 	fmt.Println("Your token is:", auth.Password)
 
 	// Create a chat object
 	chat := new(TwitchChat)
 	chat.auth = auth
 	chat.colorMap = make(map[string]string)
-	chat.AddChannel(auth.Username, "#twitchplayspokemon", auth.Password)
+	chat.AddChannel(auth.Username, "#crumps2", auth.Password)
 
 	// Start chat server
 	http.Handle("/ws", wsHandler{chat: chat})
