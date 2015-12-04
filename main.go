@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path"
 	"strconv"
 	"sync"
@@ -37,18 +36,6 @@ func main() {
 		fmt.Println("The daemon is already running, terminating...")
 		return
 	}
-
-	// capture termination signals
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt)
-	signal.Notify(sigs, os.Kill)
-	go func() {
-		for sig := range sigs {
-			fmt.Println("Removing file", sig)
-			os.Remove("/tmp/twicciand-lock")
-			os.Exit(0)
-		}
-	}()
 
 	// Make a new authentication object
 	auth := new(TwitchAuth)
