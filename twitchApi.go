@@ -183,6 +183,34 @@ func (api *TwitchApi) getEmotes(apiParams []byte) bytes.Buffer {
 	return getApiUrl(url, api)
 }
 
+func (api *TwitchApi) getUserObject(apiParams []byte) bytes.Buffer {
+	params := new(ParamsQuery)
+	err := json.Unmarshal(apiParams, params)
+	if err != nil {
+		log.Print("Incorrect parameters passed to twitch call getUserObject")
+	}
+
+	var url bytes.Buffer
+
+	url.WriteString("https://api.twitch.tv/kraken/users/")
+	url.WriteString(params.Query)
+
+	return getApiUrl(url, api)
+}
+
+func (api *TwitchApi) getUser(apiParams []byte) bytes.Buffer {
+	err := json.Unmarshal(apiParams, new(ParamsQuery))
+	if err != nil {
+		log.Print("Incorrect parameters passed to twitch call getUser")
+	}
+
+	var url bytes.Buffer
+
+	url.WriteString("https://api.twitch.tv/kraken/user")
+
+	return getApiUrl(url, api)
+}
+
 func (api *TwitchApi) getUserFollows(apiParams []byte) bytes.Buffer {
 	params := new(ParamsQueryFull)
 	err := json.Unmarshal(apiParams, params)

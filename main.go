@@ -16,6 +16,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -72,7 +73,6 @@ func main() {
 		auth.startAuthServer()
 		// Update the config file
 		file.Config.SetString("token", auth.Password)
-		file.Persist()
 	} else {
 		// We have the pasword in the config file, inject it into the auth object
 		auth.Password = token
@@ -80,13 +80,18 @@ func main() {
 
 	// Knowing the username is not necessary, but if it is provided, store it
 	username, err := file.Config.GetString("username")
-	if err != nil {
-		log.Print("Could not read username")
-		file.Config.SetString("username", "")
-		file.Persist()
-	}
-	auth.Username = username
+	if err != nil || username == "" {
+		result := twitchApi.getUser([]byte(`{"query":"nil"}`))
+		var resultjson map[string]interface{}
+		json.Unmarshal(result.Bytes(), &resultjson)
 
+		auth.Username = resultjson["name"].(string)
+		fmt.Println("Gotten username:", resultjson["name"].(string))
+
+		file.Config.SetString("username", resultjson["name"].(string))
+	}
+
+	file.Persist()
 	// Print user's authentication token
 	fmt.Println("Your token is:", auth.Password)
 
