@@ -20,25 +20,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path"
+	"strconv"
 	"sync"
 
 	"github.com/walle/cfg"
 )
 
 func main() {
-	_, err := os.Stat("/tmp/twicciand-lock")
-	if err == nil {
-		log.Print("Daemon is already running, exiting...")
+	pid := os.Getpid()
+	commandstr := "pgrep twicciand | grep -v " + strconv.Itoa(pid)
+	out, _ := exec.Command("sh", "-c", commandstr).Output()
+	if string(out) != "" {
+		fmt.Println("The daemon is already running, terminating...")
 		return
 	}
-	lock, err := os.Create("/tmp/twicciand-lock")
-	if err != nil {
-		log.Print("Error craeting lock file")
-	}
-	fmt.Println("Creating file")
-	lock.Close()
 
 	// capture termination signals
 	sigs := make(chan os.Signal, 1)
