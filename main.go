@@ -96,7 +96,7 @@ func main() {
 
 	file.Persist()
 	// Print user's authentication token
-	fmt.Println("Your username is:", username)
+	fmt.Println("Your username is:", auth.Username)
 	fmt.Println("Your token is:", auth.Password)
 
 	// Create a chat object

@@ -18,6 +18,9 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/gorilla/handlers"
 )
 
 // Generic Authentication provider interface
@@ -59,14 +62,15 @@ func handle_twitch_auth(com chan string) http.HandlerFunc {
 
 // Start the webserver and block until we get credentials
 func (auth *TwitchAuth) startAuthServer() {
+	fmt.Println("Starting Auth server")
 	// Create a channel to pass to the webserver handler
 	com := make(chan string, 0)
 
 	// Catch Twitch's authentication redirect which contains the token and list of scopes
-	http.Handle("/", http.FileServer(http.Dir("auth_server")))
+	http.Handle("/", http.FileServer(http.Dir("/usr/share/twicciand/auth_server")))
 	// Recieve a post containing the token and list of scopes from our original capture page
 	http.HandleFunc("/recv_auth", handle_twitch_auth(com))
-	go http.ListenAndServe(":19210", nil)
+	go http.ListenAndServe(":19210", handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
 
 	// Print instructions
 	fmt.Println("Waiting for authentication token...")
@@ -74,4 +78,5 @@ func (auth *TwitchAuth) startAuthServer() {
 
 	// Receive auth token from the channel
 	auth.Password = <-com
+	fmt.Println("Auth server received:", auth.Password)
 }
