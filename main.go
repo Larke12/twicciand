@@ -103,7 +103,7 @@ func main() {
 	chat := new(TwitchChat)
 	chat.auth = auth
 	chat.colorMap = make(map[string]string)
-	chat.AddChannel(auth.Username, "#crumps2", auth.Password)
+	chat.AddChannel(auth.Username, "#bobross", auth.Password)
 
 	// Start chat server
 	http.Handle("/ws", wsHandler{chat: chat})
