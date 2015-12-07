@@ -29,10 +29,10 @@ type SocketReader struct {
 }
 
 // Properly create a new socket reader
-func NewSocketReader(api *TwitchApi) *SocketReader {
+func NewSocketReader(api *TwitchApi, chat *TwitchChat) *SocketReader {
 	read := new(SocketReader)
 	read.Twitch = api
-	read.Local = NewLocalApi("", api.auth)
+	read.Local = NewLocalApi("", api.auth, chat)
 
 	ln, err := net.Listen("tcp", ":1921")
 	if err != nil {
@@ -62,6 +62,7 @@ func NewSocketReader(api *TwitchApi) *SocketReader {
 	read.LocalFuncmap = make(map[string]func(*LocalApi, []byte) bytes.Buffer)
 	read.LocalFuncmap["getStreamUrl"] = (*LocalApi).getStreamUrl
 	read.LocalFuncmap["getStreamDesc"] = (*LocalApi).getStreamDesc
+	read.LocalFuncmap["changeChat"] = (*LocalApi).changeChat
 	read.LocalFuncmap["isAuthenticated"] = (*LocalApi).isAuthenticated
 
 	return read
@@ -146,12 +147,11 @@ func (read *SocketReader) DispatchConnection(conn net.Conn, apiParams []byte) {
 
 		conn.Write(buf)
 	} else if call.Api == "twitch" {
-		fmt.Println("We have arrived")
 		result := read.TwitchFuncmap[call.Name](read.Twitch, command)
 		var genericResult interface{}
 		json.Unmarshal(result.Bytes(), &genericResult)
-		fmt.Println("Stuff:", string(result.Bytes()))
-		fmt.Println("Stuff2:", genericResult)
+		// fmt.Println("Stuff:", string(result.Bytes()))
+		// fmt.Println("Stuff2:", genericResult)
 
 		resultJson := new(JsonRpcResult)
 		resultJson.Name = call.Name

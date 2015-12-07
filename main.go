@@ -40,11 +40,15 @@ func main() {
 
 	// Make a new authentication object
 	auth := new(TwitchAuth)
+	// Create a chat object
+	chat := new(TwitchChat)
+	chat.auth = auth
+	chat.colorMap = make(map[string]string)
 	// Create new api objects
 	twitchApi := NewTwitchApi(auth)
 
 	// Run the socket reader
-	reader := NewSocketReader(twitchApi)
+	reader := NewSocketReader(twitchApi, chat)
 	fmt.Println("Starting SocketReader...")
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -99,11 +103,7 @@ func main() {
 	fmt.Println("Your username is:", auth.Username)
 	fmt.Println("Your token is:", auth.Password)
 
-	// Create a chat object
-	chat := new(TwitchChat)
-	chat.auth = auth
-	chat.colorMap = make(map[string]string)
-	chat.AddChannel(auth.Username, "#crumps2", auth.Password)
+	// chat.AddChannel(auth.Username, "#twitchplayspokemon", auth.Password)
 
 	// Start chat server
 	http.Handle("/ws", wsHandler{chat: chat})
