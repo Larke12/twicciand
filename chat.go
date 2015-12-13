@@ -187,6 +187,13 @@ func (channel *IrcChannel) SendLoop() {
 	}
 }
 
+func (channel *IrcChannel) Disconnect() {
+	close(channel.PostToChannel)
+	close(channel.ReadFromChannel)
+	close(channel.RawIrcMessages)
+	channel.Conn.Close()
+}
+
 type wsHandler struct {
 	chat *TwitchChat
 }
@@ -211,6 +218,9 @@ func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *Ir
 	if err != nil {
 		log.Print("Could not connect to channel: ", channel, ": ", err)
 		return nil
+	}
+	for _, oldchan := range chat.channels {
+		oldchan.Disconnect()
 	}
 	chat.channels = append(chat.channels, ircchannel)
 	chat.curIn = ircchannel.PostToChannel
