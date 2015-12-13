@@ -222,6 +222,7 @@ func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *Ir
 	for _, oldchan := range chat.channels {
 		oldchan.Disconnect()
 	}
+	chat.channels = chat.channels[:0]
 	chat.channels = append(chat.channels, ircchannel)
 	chat.curIn = ircchannel.PostToChannel
 	chat.curOut = ircchannel.ReadFromChannel
