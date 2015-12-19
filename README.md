@@ -10,6 +10,7 @@ set](https://golang.org/doc/code.html). Next, issue the command:
 
 ```
 go get "github.com/walle/cfg"
+go get "github.com/gorilla/handlers"
 go get "github.com/gorilla/websocket"
 go get "github.com/sorcix/irc"
 ```
