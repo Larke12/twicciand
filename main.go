@@ -69,7 +69,7 @@ func main() {
 		log.Print("Error parsing config file")
 	}
 
-	// read the auth token from the config file, or receive it from twitch
+	// Read the auth token from the config file, or receive it from twitch
 	token, err := file.Config.GetString("token")
 	if err != nil || token == "" {
 		log.Print("Could not find auth token - waiting for twitch's reply")

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sorcix/irc"
+	"github.com/sorcix/irc" // IRC v3 branch
 )
 
 type TwitchChat struct {
@@ -123,7 +123,7 @@ func (channel *IrcChannel) Reconnect() error {
 		}
 		return err
 	} else {
-		log.Print("Out of retires for channel: ", channel.Name)
+		log.Print("Out of retries for channel: ", channel.Name)
 		close(channel.RawIrcMessages)
 		close(channel.PostToChannel)
 		close(channel.ReadFromChannel)
