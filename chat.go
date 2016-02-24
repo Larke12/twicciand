@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sorcix/irc" // IRC v3 branch
+	"github.com/sorcix/irc"			// IRC v3 branch
 )
 
 type TwitchChat struct {
@@ -62,6 +62,13 @@ func CreateIrcChannel(name string, cfg *IrcConfig) (*IrcChannel, error) {
 	go channel.Sort()
 	go channel.SendLoop()
 	return channel, err
+}
+
+// Register for IRCv3 capability
+func Membership() {
+	// Send < CAP REQ :twitch.tv/membership
+	// Receive :tmi.twitch.tv CAP * ACK :twitch.tv/membership
+	return nil;
 }
 
 func (channel *IrcChannel) Connect() error {
