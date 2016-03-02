@@ -65,7 +65,16 @@ func CreateIrcChannel(name string, cfg *IrcConfig) (*IrcChannel, error) {
 }
 
 // Register for IRCv3 capability
-func Membership() {
+func Membership() error {
+	var err error
+	messages := []*irc.Message{}
+	messages = append(messages, &irc.Message{
+		Command: irc.CAP_REQ,
+		Params: []string{"twitch.tv/membership"},
+	})
+	if err != nil {
+		return fmt.Errorf("Could not register for IRCv3")
+	}
 	// Send < CAP REQ :twitch.tv/membership
 	// Receive :tmi.twitch.tv CAP * ACK :twitch.tv/membership
 	return nil;
