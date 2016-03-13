@@ -11,6 +11,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"regexp"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/sorcix/irc"			// IRC v3 branch
@@ -22,6 +24,15 @@ type TwitchChat struct {
 	curIn    chan []byte
 	curOut   chan []byte
 	colorMap map[string]string
+}
+
+type TwitchMessage struct {
+	mod		int		// 0 or 1
+	turbo		int		// 0 or 1
+	subscriber	int		// 0 or 1
+	usertype	string		// empty, mod, global_mod, admin or staff
+	color		[]string	// empty or hexadecimal
+	raw		string		// holds the original msg
 }
 
 type IrcChannel struct {
@@ -55,6 +66,7 @@ func CreateIrcChannel(name string, cfg *IrcConfig) (*IrcChannel, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	channel.Reader = irc.NewDecoder(channel.Conn)
 	channel.Writer = irc.NewEncoder(channel.Conn)
 	err = channel.Login(cfg)
@@ -75,7 +87,7 @@ func (channel *IrcChannel) Connect() error {
 
 func (channel *IrcChannel) Login(cfg *IrcConfig) error {
 	messages := []*irc.Message{}
-	log.Print("Logging into channel: ", channel.Name)
+	//log.Print("Logging into channel: ", channel.Name)
 	// create necessary login messages
 	if cfg.Password != "" {
 		messages = append(messages, &irc.Message{
@@ -140,7 +152,6 @@ func (channel *IrcChannel) RecvLoop() {
 			log.Print("Lost connection to chat channel: ", channel.Name, ": ", err)
 			return
 		}
-		log.Print(msg)
 		channel.RawIrcMessages <- msg
 	}
 }
@@ -154,7 +165,7 @@ func (channel *IrcChannel) Sort() {
 		} else if msg.Command == irc.PING {
 			channel.handlePing(msg)
 		} else if msg.Command == irc.PRIVMSG {
-			fmt.Println(msg.Params, ":", msg.Trailing)
+			//fmt.Println(msg.Params, ":", msg.Trailing)
 			channel.handlePrivMsg(msg)
 		}
 	}
@@ -168,16 +179,30 @@ func (channel *IrcChannel) handleConnect(m *irc.Message) {
 }
 
 func (channel *IrcChannel) handleCAP(m *irc.Message) {
-	// register for IRCv3 membership
-	log.Print("Registering for IRCv3 Capabilities")
+	// Registering for IRCv3 Membership
 	channel.Send(&irc.Message{
 		Command: irc.CAP,
 		Params: []string{irc.CAP_REQ + " twitch.tv/membership"},
+	})
+	// Registering for IRCv3 Tags
+	channel.Send(&irc.Message{
+		Command: irc.CAP,
+		Params: []string{irc.CAP_REQ + " twitch.tv/tags"},
+	})
+	// Registering for IRCv3 Commands
+	channel.Send(&irc.Message{
+		Command: irc.CAP,
+		Params: []string{irc.CAP_REQ + " twitch.tv/commands"},
 	})
 }
 
 func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 	fmt.Println(msg)
+	fmt_msg := new(TwitchMessage)
+	fmt_msg.raw = msg.String()
+	re, err := regexp.Compile(`color=(...)`)
+	fmt.Println(fmt_msg.color)
+	//Check ParsePrefix
 	channel.ReadFromChannel <- []byte("<strong>" + msg.Prefix.Name + "</strong>: " + msg.Trailing)
 }
 
@@ -249,13 +274,14 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Print("Could not open websocket:", err)
 	}
-	log.Print("Started websocket for chat")
+	//log.Print("Started websocket for chat")
 	go handle.chat.SendToClient(conn)
 	handle.chat.RecvFromClient(conn)
 }
 
 // Write messages from twitch's server to the websocket
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
+	// Randomize colors if the user has never set them before
 	rand.Seed(time.Now().UTC().UnixNano())
 	colors := []string{
 		"#FF0000",
@@ -276,9 +302,10 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	}
 
 	for msg := range chat.curOut {
-		log.Print("Sending to client:", string(msg))
+		log.Print("Sending to client: ", string(msg))
 		arr := bytes.SplitN(msg, []byte{':'}, 2)
-		color, ok := chat.colorMap[string(arr[0])]
+		color, ok :=  
+		//color, ok := chat.colorMap[string(arr[0])]
 		if !ok {
 			color = colors[rand.Intn(len(colors))]
 			chat.colorMap[string(arr[0])] = color
@@ -295,7 +322,7 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
-		log.Print("Received from client:", string(msg))
+		//log.Print("Received from client:", string(msg))
 		if err != nil {
 			break
 		}
