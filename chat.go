@@ -75,11 +75,6 @@ func (channel *IrcChannel) Connect() error {
 
 func (channel *IrcChannel) Login(cfg *IrcConfig) error {
 	messages := []*irc.Message{}
-	log.Print("Registering for IRCv3 Capabilities")
-	messages = append(messages, &irc.Message{
-		Command: irc.CAP_REQ,
-		Params: []string{"twitch.tv/membership"},
-	})
 	log.Print("Logging into channel: ", channel.Name)
 	// create necessary login messages
 	if cfg.Password != "" {
@@ -145,6 +140,7 @@ func (channel *IrcChannel) RecvLoop() {
 			log.Print("Lost connection to chat channel: ", channel.Name, ": ", err)
 			return
 		}
+		log.Print(msg)
 		channel.RawIrcMessages <- msg
 	}
 }
@@ -153,6 +149,7 @@ func (channel *IrcChannel) Sort() {
 	// Sort and handle irc messages
 	for msg := range channel.RawIrcMessages {
 		if msg.Command == irc.RPL_WELCOME {
+			channel.handleCAP(msg)
 			channel.handleConnect(msg)
 		} else if msg.Command == irc.PING {
 			channel.handlePing(msg)
@@ -170,7 +167,17 @@ func (channel *IrcChannel) handleConnect(m *irc.Message) {
 	})
 }
 
+func (channel *IrcChannel) handleCAP(m *irc.Message) {
+	// register for IRCv3 membership
+	log.Print("Registering for IRCv3 Capabilities")
+	channel.Send(&irc.Message{
+		Command: irc.CAP,
+		Params: []string{irc.CAP_REQ + " twitch.tv/membership"},
+	})
+}
+
 func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
+	fmt.Println(msg)
 	channel.ReadFromChannel <- []byte("<strong>" + msg.Prefix.Name + "</strong>: " + msg.Trailing)
 }
 
