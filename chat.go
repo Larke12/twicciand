@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"time"
 	"regexp"
-	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/sorcix/irc"			// IRC v3 branch
@@ -200,8 +199,8 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 	fmt.Println(msg)
 	fmt_msg := new(TwitchMessage)
 	fmt_msg.raw = msg.String()
-	re, err := regexp.Compile(`color=(...)`)
-	fmt.Println(fmt_msg.color)
+	re, err = regexp.Compile(`color=(...)`)
+	fmt.Println(re)
 	//Check ParsePrefix
 	channel.ReadFromChannel <- []byte("<strong>" + msg.Prefix.Name + "</strong>: " + msg.Trailing)
 }
@@ -304,8 +303,8 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	for msg := range chat.curOut {
 		log.Print("Sending to client: ", string(msg))
 		arr := bytes.SplitN(msg, []byte{':'}, 2)
-		color, ok :=  
-		//color, ok := chat.colorMap[string(arr[0])]
+		//color, ok :=  
+		color, ok := chat.colorMap[string(arr[0])]
 		if !ok {
 			color = colors[rand.Intn(len(colors))]
 			chat.colorMap[string(arr[0])] = color
