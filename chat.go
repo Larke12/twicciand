@@ -300,7 +300,7 @@ func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *Ir
 // Accept incomming connections
 func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	conn, err := upgrader.Upgrade(w, req, nil) // omit the responseHeader http.Header for now, not needed
-	fmt.Print("Got a connection")
+	fmt.Print("Got a connection\n")
 	if err != nil {
 		log.Print("Could not open websocket:", err)
 	}
