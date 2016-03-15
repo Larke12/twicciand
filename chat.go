@@ -4,7 +4,7 @@ package main
 import (
 //	"bytes"
 	"fmt"
-//	"html"
+	"html"
 	"log"
 	"math"
 	"math/rand"
@@ -198,11 +198,11 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 	fmt_msg.raw = msg.String()
 	re, err := regexp.Compile(`#[[:xdigit:]]{6}`)
 	if err != nil {
-		log.Print("Could not connect to channel: ", channel, ": ", err)
+		log.Print("Could not parse PrivMsg\n")
 	}
 	fmt_msg.color = re.FindStringSubmatch(fmt_msg.raw)
 	if len(fmt_msg.color) == 1 {
-		channel.ReadFromChannel <- []byte("<span style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span>: " + msg.Trailing)
+		channel.ReadFromChannel <- []byte("<span style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 	} else {
 		// Randomize colors if the user has never set them before
 		rand.Seed(time.Now().UTC().UnixNano())
@@ -231,7 +231,6 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 		}*/
 
 		color := colors[rand.Intn(len(colors))]
-
 		channel.ReadFromChannel <- []byte("<span style='color:" + color + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span>: " + msg.Trailing)
 	}
 }
@@ -315,12 +314,6 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	for msg := range chat.curOut {
 		log.Print("Sending to client: ", string(msg))
-		/*color, ok := chat.colorMap[string(arr[0])]
-		if !ok {
-			color = colors[rand.Intn(len(colors))]
-			chat.colorMap[string(arr[0])] = color
-		}*/
-		//err := conn.WriteMessage(websocket.TextMessage, []byte("<span style='color:"+color+"' id='username'>"+string(arr[0])+"</span><span id='text'>: "+html.EscapeString(string(arr[1]))+" </span>"))
 		err := conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
 
 		if err != nil {
