@@ -2,7 +2,7 @@
 package main
 
 import (
-//	"bytes"
+	//	"bytes"
 	"fmt"
 	"html"
 	"log"
@@ -23,10 +23,11 @@ type TwitchChat struct {
 	curIn		chan []byte
 	curOut		chan []byte
 	colorMap	map[string]string
-	mod		int		// 0 or 1
-	turbo		int		// 0 or 1
-	subscriber	int		// 0 or 1
-	usertype	string		// empty, mod, global_mod, admin or staff
+	mod		[]string	// 0 or 1
+	turbo		[]string	// 0 or 1
+	subscriber	[]string	// 0 or 1
+	usertype	[]string	// empty, mod, global_mod, admin or staff
+	disp_name	[]string	// users sylized name
 	color		[]string	// empty or hexadecimal
 	raw		string		// holds the original msg
 }
@@ -196,12 +197,24 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 	fmt.Println(msg)
 	fmt_msg := new(TwitchChat)
 	fmt_msg.raw = msg.String()
-	re, err := regexp.Compile(`#[[:xdigit:]]{6}`)
+	// Parse the tags out of the PRIVMSG for use in the front end
+	// Parse display name
+	reDisp, err := regexp.Compile(`display-name\=(.*?)\;`)
 	if err != nil {
-		log.Print("Could not parse PrivMsg\n")
+		log.Print("Could not parse PRIVMSG\n")
 	}
-	fmt_msg.color = re.FindStringSubmatch(fmt_msg.raw)
-	if len(fmt_msg.color) == 1 {
+	fmt_msg.disp_name = reDisp.FindStringSubmatch(fmt_msg.raw)
+
+	// Parse color tag
+	reColor, err := regexp.Compile(`#[[:xdigit:]]{6}`)
+	if err != nil {
+		log.Print("Could not parse PRIVMSG\n")
+	}
+	fmt_msg.color = reColor.FindStringSubmatch(fmt_msg.raw)
+
+	if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) != 0 {
+		channel.ReadFromChannel <- []byte("<span style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+	} else if len(fmt_msg.color) == 1 {
 		channel.ReadFromChannel <- []byte("<span style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 	} else {
 		// Randomize colors if the user has never set them before
@@ -231,7 +244,8 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 		}*/
 
 		color := colors[rand.Intn(len(colors))]
-		channel.ReadFromChannel <- []byte("<span style='color:" + color + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span>: " + msg.Trailing)
+		channel.ReadFromChannel <- []byte("<span style='color:" + color + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+
 	}
 }
 
