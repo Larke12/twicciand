@@ -274,8 +274,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *IrcChannel {
+	//	Server:     "irc.twitch.tv:6667",
 	config := &IrcConfig{
-		Server:     "irc.twitch.tv:6667",
+		Server:	    "irc.chat.twitch.tv:80",
 		Username:   user,
 		Password:   pass,
 		MaxRetries: 3,
