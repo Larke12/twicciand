@@ -23,13 +23,13 @@ type TwitchChat struct {
 	curIn		chan []byte
 	curOut		chan []byte
 	colorMap	map[string]string
-	mod		[]string	// 0 or 1, unused right now
+	mod			[]string	// 0 or 1, unused right now
 	turbo		[]string	// 0 or 1
-	sub		[]string	// 0 or 1
+	sub			[]string	// 0 or 1
 	usertype	[]string	// empty, mod, global_mod, admin or staff
 	disp_name	[]string	// users sylized name
 	color		[]string	// empty or hexadecimal
-	raw		string		// temp string to hold the original msg
+	raw 		string		// temp string to hold the original msg
 }
 
 type IrcChannel struct {
@@ -197,54 +197,60 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 	fmt.Println(msg)
 	fmt_msg := new(TwitchChat)
 	fmt_msg.raw = msg.String()
+
 	// Parse the tags out of the PRIVMSG for use in the front end
-	// Parse turbo, subscriber, and usertype
+
+	// Parse usertype
 	reUserType, err := regexp.Compile(`user-type\=(.*?)(\;|\s)`)
 	if err != nil {
-		log.Print("Could not parse PRIVMSG\n")
+		log.Print("Could not parse UserType\n")
 	}
 	fmt_msg.usertype = reUserType.FindStringSubmatch(fmt_msg.raw)
 
+	// Parse subscriber
 	reSub, err := regexp.Compile(`subscriber\=(.*?)(\;|\s)`)
 	if err != nil {
-		log.Print("Could not parse PRIVMSG\n")
+		log.Print("Could not parse Subscriber\n")
 	}
 	fmt_msg.sub = reSub.FindStringSubmatch(fmt_msg.raw)
 
+	// Parse turbo
 	reTurbo, err := regexp.Compile(`turbo\=(.*?)(\;|\s)`)
 	if err != nil {
-		log.Print("Could not parse PRIVMSG\n")
+		log.Print("Could not parse Turbo\n")
 	}
 	fmt_msg.turbo = reTurbo.FindStringSubmatch(fmt_msg.raw)
 
 	// Parse display name
 	reDisp, err := regexp.Compile(`display-name\=(.*?)(\;|\s)`)
 	if err != nil {
-		log.Print("Could not parse PRIVMSG\n")
+		log.Print("Could not parse DisplayName\n")
 	}
 	fmt_msg.disp_name = reDisp.FindStringSubmatch(fmt_msg.raw)
 
 	// Parse color tag
 	reColor, err := regexp.Compile(`#[[:xdigit:]]{6}`)
 	if err != nil {
-		log.Print("Could not parse PRIVMSG\n")
+		log.Print("Could not parse Color\n")
 	}
 	fmt_msg.color = reColor.FindStringSubmatch(fmt_msg.raw)
 
-	// User has a color, stylized name, and is not a bot
-	if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) == 1 && len(fmt_msg.sub) == 1 && len(fmt_msg.turbo) == 1 {
-		// User is a mod or staff 
-		if len(fmt_msg.usertype) == 1 {
-			channel.ReadFromChannel <- []byte("<span data-usertype=" + fmt_msg.usertype[1] + " data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + " style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
-		} else {
-			// User has no type 
-			channel.ReadFromChannel <- []byte("<span data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + " style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
-		}
+	if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 && len(fmt_msg.usertype) >= 1 {
+		// User has all fields (mod or staff)
+		channel.ReadFromChannel <- []byte("<span data-usertype=" + fmt_msg.usertype[1] + " data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + 
+		" style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+	} else if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 {
+		// User is missing user-type tag (non-mod)
+		channel.ReadFromChannel <- []byte("<span data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + " style='color:" + fmt_msg.color[0] + 
+		"' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+	} else if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) >= 1 {
+		// User is missing user-type, subscriber, and turbo tags (rare)
+		channel.ReadFromChannel <- []byte("<span data-sub=0 data-turbo=0 style='color:" + fmt_msg.color[0] + 
+		"' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 	} else if len(fmt_msg.color) == 1 {
-		// User is bot
+		// User is bot (or not authenticated)
 		channel.ReadFromChannel <- []byte("<span style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 	} else {
-		// User is noob and makes my life hell, give them a random color
 		// Randomize colors if the user has never set them before
 		rand.Seed(time.Now().UTC().UnixNano())
 		colors := []string{
@@ -265,7 +271,7 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 			"#00FF7F",
 		}
 
-		/* Map colors to the name, broken for now
+		/* Map colors to the name, broken for some reason
 		color, ok := fmt_msg.colorMap[msg.Prefix.Name]
 		if !ok {
 			color = colors[rand.Intn(len(colors))]
@@ -274,12 +280,18 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 
 		color := colors[rand.Intn(len(colors))]
 
-		// Is a user
-		if len(fmt_msg.sub) == 1 && len(fmt_msg.turbo) == 1 {
-			channel.ReadFromChannel <- []byte("<span data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + " style='color:" + color + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
-		} else {
-			// Is a noob bot
-			channel.ReadFromChannel <- []byte("<span style='color:" + color + "' id='username'><strong>" + msg.Prefix.Name + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+		if len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 && len(fmt_msg.usertype) >= 1 {
+			// User has all fields (mod or staff)
+			channel.ReadFromChannel <- []byte("<span data-usertype=" + fmt_msg.usertype[1] + " data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + 
+			" style='color:" + color + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+		} else if len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 {
+			// User is missing user-type tag (non-mod)
+			channel.ReadFromChannel <- []byte("<span data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + " style='color:" + color + 
+			"' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
+		} else if len(fmt_msg.disp_name) >= 1 {
+			// User is missing user-type, subscriber, and turbo tags (rare)
+			channel.ReadFromChannel <- []byte("<span data-sub=0 data-turbo=0 style='color:" + color + 
+			"' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 		}
 	}
 }
