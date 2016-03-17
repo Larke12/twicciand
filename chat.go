@@ -237,6 +237,7 @@ func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
 
 	if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 && len(fmt_msg.usertype) >= 1 {
 		// User has all fields (mod or staff)
+		// <a href='https://www.twitch.tv/" + msg.Prefix.Name + "/profile' target='_blank'><strong>" + fmt_msg.disp_name[1] + "</strong></a>
 		channel.ReadFromChannel <- []byte("<span data-usertype=" + fmt_msg.usertype[1] + " data-sub=" + fmt_msg.sub[1] + " data-turbo=" + fmt_msg.turbo[1] + 
 		" style='color:" + fmt_msg.color[0] + "' id='username'><strong>" + fmt_msg.disp_name[1] + "</strong></span><span id='text'>: " + html.EscapeString(msg.Trailing) + " </span>")
 	} else if len(fmt_msg.color) == 1 && len(fmt_msg.disp_name) >= 1 && len(fmt_msg.sub) >= 1 && len(fmt_msg.turbo) >= 1 {
