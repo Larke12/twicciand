@@ -23,13 +23,13 @@ type TwitchChat struct {
 	curIn		chan []byte
 	curOut		chan []byte
 	colorMap	map[string]string
-	mod			[]string	// 0 or 1, unused right now
+	mod		[]string	// 0 or 1, unused right now
 	turbo		[]string	// 0 or 1
-	sub			[]string	// 0 or 1
+	sub		[]string	// 0 or 1
 	usertype	[]string	// empty, mod, global_mod, admin or staff
 	disp_name	[]string	// users sylized name
 	color		[]string	// empty or hexadecimal
-	raw 		string		// temp string to hold the original msg
+	raw		string		// temp string to hold the original msg
 }
 
 type IrcChannel struct {
