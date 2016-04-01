@@ -374,7 +374,6 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Write messages from twitch's server to the websocket
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	// Randomize colors if the user has never set them before
-	rand.Seed(time.Now().UTC().UnixNano())
 	for msg := range chat.curOut {
 		log.Print("Sending to client: ", string(msg))
 		err := conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
@@ -390,7 +389,7 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
-		//log.Print("Received from client:", string(msg))
+		log.Print("Received from client:", string(msg))
 		if err != nil {
 			break
 		}
