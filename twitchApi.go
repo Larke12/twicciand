@@ -295,9 +295,15 @@ func (api *TwitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	url.WriteString("https://api.twitch.tv/kraken/search/streams?q=")
 	url.WriteString(params.Query)
 	url.WriteString("&limit=")
-	url.WriteString(strconv.Itoa(params.Page.Limit))
+	//url.WriteString(strconv.Itoa(params.Page.Limit))
+	url.WriteString(strconv.Itoa(100))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Page.Offset))
+
+	log.Print(params)
+	log.Print("Got here")
+	log.Print(strconv.Itoa(params.Page.Limit))
+	log.Print(url)
 
 	return getApiUrl(url, api)
 }
