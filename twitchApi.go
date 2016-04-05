@@ -296,7 +296,7 @@ func (api *TwitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	url.WriteString(params.Query)
 	url.WriteString("&limit=")
 	//url.WriteString(strconv.Itoa(params.Page.Limit))
-	url.WriteString(strconv.Itoa(100))
+	url.WriteString(strconv.Itoa(30))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Page.Offset))
 
