@@ -257,7 +257,7 @@ func (api *TwitchApi) getGames(apiParams []byte) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/games/top?limit=")
-	url.WriteString(strconv.Itoa(params.Limit))
+	url.WriteString(strconv.Itoa(30))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Offset))
 
