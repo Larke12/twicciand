@@ -125,6 +125,7 @@ Loop:
 func (read *SocketReader) DispatchConnection(conn net.Conn, apiParams []byte) {
 	call := new(JsonRpc)
 	err := json.Unmarshal(apiParams, call)
+	log.Print(err)
 	if err != nil {
 		log.Print("Socket reader could not parse command")
 		return
