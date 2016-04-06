@@ -136,7 +136,7 @@ func (api *TwitchApi) getChannelFollows(apiParams []byte) bytes.Buffer {
 	url.WriteString("https://api.twitch.tv/kraken/channels/")
 	url.WriteString(params.Query)
 	url.WriteString("/follows?limit=")
-	url.WriteString(strconv.Itoa(params.Page.Limit))
+	url.WriteString(strconv.Itoa(30)) // params.Page.Limit
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Page.Offset))
 
@@ -257,7 +257,7 @@ func (api *TwitchApi) getGames(apiParams []byte) bytes.Buffer {
 	var url bytes.Buffer
 
 	url.WriteString("https://api.twitch.tv/kraken/games/top?limit=")
-	url.WriteString(strconv.Itoa(30))
+	url.WriteString(strconv.Itoa(30)) // params.Page.Limit
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Offset))
 
@@ -295,8 +295,7 @@ func (api *TwitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	url.WriteString("https://api.twitch.tv/kraken/search/streams?q=")
 	url.WriteString(params.Query)
 	url.WriteString("&limit=")
-	//url.WriteString(strconv.Itoa(params.Page.Limit))
-	url.WriteString(strconv.Itoa(30))
+	url.WriteString(strconv.Itoa(30)) // params.Page.Limit
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Page.Offset))
 
