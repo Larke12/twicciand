@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"log"
 	"os/exec"
 	"strings"
@@ -35,7 +35,7 @@ func NewLocalApi(ydlPath string, auth *TwitchAuth, chat *TwitchChat) *LocalApi {
 
 // Gets the actual stream URL using youtube-dl
 func (api *LocalApi) getStreamUrl(apiParams []byte) bytes.Buffer {
-	fmt.Println(string(apiParams))
+	//fmt.Println(string(apiParams))
 	params := new(ParamsUrlConv)
 	err := json.Unmarshal(apiParams, params)
 	if err != nil {

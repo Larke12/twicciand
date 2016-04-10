@@ -194,7 +194,7 @@ func (channel *IrcChannel) handleCAP(m *irc.Message) {
 }
 
 func (channel *IrcChannel) handlePrivMsg(msg *irc.Message) {
-	fmt.Println(msg)
+	//fmt.Println(msg)
 	fmt_msg := new(TwitchChat)
 	fmt_msg.raw = msg.String()
 
