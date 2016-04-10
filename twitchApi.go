@@ -303,11 +303,6 @@ func (api *TwitchApi) searchStreams(apiParams []byte) bytes.Buffer {
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Page.Offset))
 
-	//log.Print(params)
-	//log.Print("Got here")
-	//log.Print(strconv.Itoa(params.Page.Limit))
-	//log.Print(url)
-
 	return getApiUrl(url, api)
 }
 
@@ -320,12 +315,12 @@ func (api *TwitchApi) searchGames(apiParams []byte) bytes.Buffer {
 
 	var url bytes.Buffer
 
-	url.WriteString("https://api.twitch.tv/kraken/search/games?q=")
+	//url.WriteString("https://api.twitch.tv/kraken/search/games?q=")
+	url.WriteString("https://api.twitch.tv/kraken/search/streams?game=")
 	url.WriteString(params.Query)
-	url.WriteString("&type=")
-	url.WriteString(params.QueryType)
-	url.WriteString("&live=")
-	url.WriteString(strconv.FormatBool(params.Live))
+	url.WriteString("&limit=")
+	url.WriteString(strconv.Itoa(30)) // params.Page.Limit
+	url.WriteString("&offset=")
 
 	return getApiUrl(url, api)
 }
