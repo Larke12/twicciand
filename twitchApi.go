@@ -38,6 +38,10 @@ type ParamsQuery struct {
 	Query string `json:"query"`
 }
 
+type ParamsName struct {
+	Query string `json:"name"`
+}
+
 type ParamsPage struct {
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
@@ -371,6 +375,31 @@ func (api *TwitchApi) getFollowedStreams(apiParams []byte) bytes.Buffer {
 	url.WriteString(strconv.Itoa(params.Limit))
 	url.WriteString("&offset=")
 	url.WriteString(strconv.Itoa(params.Offset))
+
+	return getApiUrl(url, api)
+}
+
+func (api *TwitchApi) getFollowedGames(apiParams []byte) bytes.Buffer {
+	params := new(ParamsPage)
+	err := json.Unmarshal(apiParams, params)
+	if err != nil {
+		log.Print("Incorrect parameters passed to twitch call getFollowedGames")
+	}
+
+	var usr bytes.Buffer
+	usr.WriteString("https://api.twitch.tv/kraken/user")
+	var username = getApiUrl(usr, api)
+	name := new(ParamsName)
+	err = json.Unmarshal(username.Bytes(), name)
+	if err != nil {
+		log.Print("Incorrect parameters passed to twitch call getFollowedGames-user")
+	}
+
+	var url bytes.Buffer
+
+	url.WriteString("https://api.twitch.tv/api/users/")
+	url.WriteString(name.Query)
+	url.WriteString("/follows/games")
 
 	return getApiUrl(url, api)
 }

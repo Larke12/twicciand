@@ -57,6 +57,7 @@ func NewSocketReader(api *TwitchApi, chat *TwitchChat) *SocketReader {
 	read.TwitchFuncmap["getStream"] = (*TwitchApi).getStream
 	read.TwitchFuncmap["getFeaturedStreams"] = (*TwitchApi).getFeaturedStreams
 	read.TwitchFuncmap["getFollowedStreams"] = (*TwitchApi).getFollowedStreams
+	read.TwitchFuncmap["getFollowedGames"] = (*TwitchApi).getFollowedGames
 
 	// Load local api functions into a function map, so we can dispatch calls easily
 	read.LocalFuncmap = make(map[string]func(*LocalApi, []byte) bytes.Buffer)
