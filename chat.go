@@ -355,14 +355,14 @@ func (chat *TwitchChat) AddChannel(user string, channel string, pass string) *Ir
 	chat.channels = append(chat.channels, ircchannel)
 	chat.curIn = ircchannel.PostToChannel
 	chat.curOut = ircchannel.ReadFromChannel
-	fmt.Println("Added new chat channel")
+	//fmt.Println("Added new chat channel")
 	return ircchannel
 }
 
 // Accept incomming connections
 func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	conn, err := upgrader.Upgrade(w, req, nil) // omit the responseHeader http.Header for now, not needed
-	fmt.Print("Got a connection\n")
+	//fmt.Print("Got a connection\n")
 	if err != nil {
 		log.Print("Could not open websocket:", err)
 	}
@@ -375,7 +375,7 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 	// Randomize colors if the user has never set them before
 	for msg := range chat.curOut {
-		log.Print("Sending to client: ", string(msg))
+		//log.Print("Sending to client: ", string(msg))
 		err := conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
 
 		if err != nil {
