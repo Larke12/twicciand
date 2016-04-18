@@ -165,6 +165,7 @@ func (channel *IrcChannel) Sort() {
 			//fmt.Println(msg.Params, ":", msg.Trailing)
 			channel.handlePrivMsg(msg)
 		}
+		// Catch USERSTATE on join
 	}
 }
 
