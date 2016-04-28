@@ -15,7 +15,7 @@ go get "github.com/gorilla/websocket"
 go get "github.com/sorcix/irc"
 ```
 
-to install config file library. Finally, run `go build` in
+to install config file library. `sorcix/irc` will need to be switched to the `ircv3.2-tags` branch. Finally, run `go build` in
 the project directory to build the project.
 
 ## Authentication
