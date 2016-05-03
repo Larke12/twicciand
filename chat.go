@@ -373,7 +373,6 @@ func (handle wsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Write messages from twitch's server to the websocket
 func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
-	// Randomize colors if the user has never set them before
 	for msg := range chat.curOut {
 		//log.Print("Sending to client: ", string(msg))
 		err := conn.WriteMessage(websocket.TextMessage, []byte(string(msg)))
@@ -389,11 +388,36 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
-		log.Print("Received from client:", string(msg))
+		//log.Print("Received from client:", string(msg))
 		if err != nil {
 			break
 		}
-		arr := []byte(chat.auth.Username + ": ")
+
+		//Randomize colors if the user has never set them before
+		rand.Seed(time.Now().UTC().UnixNano())
+		colors := []string{
+			"#FF0000",
+			"#0000FF",
+			"#008000",
+			"#B22222",
+			"#FF7F50",
+			"#9ACD32",
+			"#FF4500",
+			"#2E8B57",
+			"#DAA520",
+			"#D2691E",
+			"#5F9EA0",
+			"#1E90FF",
+			"#FF69B4",
+			"#8A2BE2",
+			"#00FF7F",
+		}
+
+		color := colors[rand.Intn(len(colors))]
+
+		arr := []byte("<span data-sub='0' data-turbo='0' style='color:" + color + "'id='username'><strong>" + chat.auth.Username + ": ")
+		msg = []byte("</strong></span><span id='text'>: " + string(msg) + " </span>")
+
 		chat.curIn <- msg
 		chat.curOut <- []byte(string((append(arr[:], msg[:]...))))
 	}
