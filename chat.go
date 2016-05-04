@@ -385,7 +385,7 @@ func (chat *TwitchChat) SendToClient(conn *websocket.Conn) {
 }
 
 // Write messages from twitch's server to the websocket
-func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
+/*func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 	for {
 		_, msg, err := conn.ReadMessage()
 		//log.Print("Received from client:", string(msg))
@@ -422,4 +422,18 @@ func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
 		chat.curOut <- []byte(string((append(arr[:], msg[:]...))))
 	}
 	conn.Close()
+}*/
+func (chat *TwitchChat) RecvFromClient(conn *websocket.Conn) {
+	for {
+		_, msg, err := conn.ReadMessage()
+		log.Print("Received from client:", string(msg))
+		if err != nil {
+			break
+		}
+		arr := []byte(chat.auth.Username + ": ")
+		chat.curIn <- msg
+		chat.curOut <- []byte(string((append(arr[:], msg[:]...))))
+	}
+	conn.Close()
 }
+
