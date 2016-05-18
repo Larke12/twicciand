@@ -394,7 +394,7 @@ func (api *TwitchApi) getFollowedGames(apiParams []byte) bytes.Buffer {
 
 	url.WriteString("https://api.twitch.tv/api/users/")
 	url.WriteString(name.Query)
-	url.WriteString("/follows/games")
+	url.WriteString("/follows/games/live")
 
 	return getApiUrl(url, api)
 }
